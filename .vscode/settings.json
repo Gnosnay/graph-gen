@@ -1,0 +1,8 @@
+{
+  // below is for plantuml
+  "plantuml.diagramsRoot": "plantuml/examples/src",
+  "plantuml.exportOutDir": "plantuml/examples/out",
+  "plantuml.includes": [
+    "plantuml/examples/style"
+  ]
+}

@@ -1,4 +1,7 @@
 @startuml
+skinparam shadowing false
+skinparam monochrome true 
+skinparam backgroundColor white
 
 title 时序图
 

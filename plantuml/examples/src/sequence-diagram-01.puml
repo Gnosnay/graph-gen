@@ -1,5 +1,9 @@
 @startuml
 
+skinparam shadowing false
+skinparam monochrome true 
+skinparam backgroundColor white
+
 actor Actor <<stereotype 01>>
 boundary Boundary <<stereotype 02>>
 control Control <<stereotype 03>>

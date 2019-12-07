@@ -1,0 +1,67 @@
+digraph access
+{
+  label="How to make sure 'input' is valid"
+  size ="8,8";
+
+  start[shape="box", style=rounded];
+  end[shape="box", style=rounded];
+
+  request[shape="parallelogram", style="", label="req_with_labInst_&_prod"]
+  if_valid_1[shape="diamond", style="", label="请求是否\n来自云游"];
+  if_valid_2[shape="diamond", style="", label="是否开启全局\n「白名单」"];
+  if_valid_3[shape="diamond", style="", label="是否位于全局\n「白名单」"];
+  if_valid_4[shape="diamond", style="", label="是否位于全局\n「黑名单」"];
+  if_valid_5[shape="diamond", style="", label="是否开启实验室\n「白名单」"];
+  if_valid_6[shape="diamond", style="", label="是否位于实验室\n「白名单」"];
+  if_valid_7[shape="diamond", style="", label="是否位于实验室\n「黑名单」"];
+  if_valid_8[shape="diamond", style="", label="实验室实例\n是否启用"];
+  failed[label="失败"]
+  success[label="成功"]
+  stage_1[style="", label="全局黑白名单"]
+  stage_2[style="", label="产品未被接入"]
+  stage_3[style="", label="产品被接入"]
+  stage_4[style="", label="实验室黑白名单"]
+  stage_5[style="", label="实验室开启接入"]
+  stage_6[style="", label="实验室未开启接入"]
+  run[shape="parallelogram", style="", label="调度执行"]
+  
+
+  start -> request;
+  request -> if_valid_1;
+  if_valid_1 -> stage_1[label="yes"];
+    stage_1 -> if_valid_2;
+    if_valid_2 -> if_valid_3[label="yes"];
+      if_valid_3 -> stage_3[label="yes"];
+      if_valid_3 -> stage_2[label="no"];
+    if_valid_2 -> if_valid_4[label="no"]
+      if_valid_4 -> stage_3[label="no"];
+      if_valid_4 -> stage_2[label="yes"];
+    stage_2 -> failed[label="错误：未接入"];
+    
+    stage_3 -> stage_4;
+    stage_4 -> if_valid_5
+    if_valid_5 -> if_valid_6[label="yes"];
+      if_valid_6 -> stage_5[label="yes"]
+      if_valid_6 -> stage_6[label="no"]
+    if_valid_5 -> if_valid_7[label="no"];
+      if_valid_7 -> stage_5[label="no"]
+      if_valid_7 -> stage_6[label="yes"]
+    stage_5 -> if_valid_8
+    stage_6 -> failed[label="错误：实验室未接入"]
+    if_valid_8 -> failed[label="no, 错误：实验室未开启"]
+    if_valid_8 -> run[label="yes"]
+
+    run -> success[label="成功：返回"]
+
+  if_valid_1 -> if_valid_8[label="no"]
+
+  failed -> end;
+  success -> end
+
+
+  
+	// {rank=same;3;22;}
+	// {rank=same;4;33;}
+	// {rank=same;5;44;}
+	// {rank=same;6;55;66;}
+}

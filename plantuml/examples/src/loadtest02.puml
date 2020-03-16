@@ -1,0 +1,33 @@
+@startuml
+
+title 云鉴、云谷、压测平台-活动图
+
+start
+:触发性能实验室;
+note right
+  调用：云鉴 -> 云谷
+  入参：云游产品码
+  出参：触发成功/失败、实验室id
+end note
+:触发压测平台项目执行;
+note right
+  调用：云谷 -> 压测平台
+  入参：平台项目id
+  出参：触发成功/失败，压测id
+end note
+
+while (轮询压测结果，判断压测是否执行结束) is (未结束)
+note right
+  调用：云谷 -> 压测平台
+  入参：压测id
+  出参：压测结果
+end note
+endwhile (已结束)
+:结果回调云鉴;
+note right
+  调用：云谷 -> 云鉴
+  入参：实验室id、压测结果
+  出参：回调成功/失败
+end note
+stop
+@enduml

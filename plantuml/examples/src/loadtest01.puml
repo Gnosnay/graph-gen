@@ -1,0 +1,54 @@
+@startuml
+
+title 质量门禁调用时序图
+
+autonumber
+actor User
+
+alt 静态资源实验室
+	autonumber 1 
+    User -> 云游:部署58SIT-AKE2.0环境
+    autonumber 1 
+    云游 -> 云游:.1 环境部署完成
+    autonumber 1 
+    云游 -> 云游:.2 生成风险配置
+    autonumber 1 
+    云游 -> 云鉴:.3 通知风险更新
+    loop 轮询
+        autonumber 1
+    	云游 -> 云鉴:.4 拉取风险数据信息
+    end
+
+    alt 云鉴风险计算
+        云鉴 -> 云鉴:前置风险生成
+        autonumber 2 
+        云鉴 -> 云鉴:.1 产品全局接入验证
+        autonumber 2 
+        云鉴 -> 云鉴:.2 必备实验室实例验证
+        autonumber 2 
+        云鉴 -> 云鉴:.3 过滤已停用实验室实例
+        autonumber 2 
+        云鉴 -> 云启:.4 触发实验室关联任务
+        autonumber 2 
+        云启 -> 云启:.5 调度任务执行
+        loop 轮询
+            autonumber 2 
+            云鉴 -> 云启:.6 查询运行结果
+        end
+        autonumber 2 
+        云鉴 -> 云鉴:.7 根据任务结果生成规则与风险
+    end
+    
+    云游 -> 云游:轮询获得风险数据，卡点
+    User -> 云鉴:处理相关风险
+    note right
+    	三种情况
+    	1、修改代码解决问题，自动重复以上过程
+    	2、无需修改代码，手动重试相关实验室
+        3、申请跳过
+    end note
+    云鉴 -> 云游:通知风险已处理
+    云游 -> 云游:风险数据更新
+end
+
+@enduml

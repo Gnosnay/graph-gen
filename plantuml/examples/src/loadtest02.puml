@@ -1,33 +1,70 @@
 @startuml
 
-title 云鉴、云谷、压测平台-活动图
+title 集成测试自动化
 
 start
-:触发性能实验室;
+:触发测试回归;
 note right
-  调用：云鉴 -> 云谷
-  入参：云游产品码
-  出参：触发成功/失败、实验室id
+  调用：QA/Dev -> Executor
+  入参：{"mosnVersion": "1.2.6", "images": [{"addr":"PROVIDER/CONSUMER"}]}
+  出参：触发成功/失败
 end note
-:触发压测平台项目执行;
+:Executor根据image address拉起应用;
 note right
-  调用：云谷 -> 压测平台
-  入参：平台项目id
-  出参：触发成功/失败，压测id
+  调用：Executor -> k8s
+  方式：k8s client
 end note
-
-while (轮询压测结果，判断压测是否执行结束) is (未结束)
+while (查询应用running状态) is (非running)
 note right
-  调用：云谷 -> 压测平台
-  入参：压测id
-  出参：压测结果
+  调用：Executor -> k8s
+  方式：callback
+  解释：拉起的所有应用会向Executor注册自己的IP和运行状态，
+  当所有应用为running时，应用才会正常运行
 end note
-endwhile (已结束)
-:结果回调云鉴;
+endwhile (全部running)
+:构造IP集合;
 note right
-  调用：云谷 -> 云鉴
-  入参：实验室id、压测结果
-  出参：回调成功/失败
+  调用：Executor -> k8s
+  方式：callback
+  出参：Set(ConsumersIP), Set(ProvidersIP)
+  解释：将Consumers和Providers的IP分别构建成两个集合，并保存这两个集合
+  此时环境准备完毕
+end note
+if (TestCase是有状态的) then (是)
+  :顺序执行1;
+  :顺序执行2;
+  :顺序执行3;
+else (否)
+  fork
+    :并行执行1;
+  fork again
+    :testcase: dubbo 2.x.x 调用验证;
+    note right
+      调度：被Executor调度
+      调用：testcase -> Set(Consumers)
+      入参：Set(ProvidersIP)
+      出参：Map<ProviderIP, Response[]>;
+      Response {
+        caseType: String;
+        success: true;
+        errorMsg: String;
+      }
+      解释：被调度后，testcase开始执行，执行方式
+      是curl Consumer暴露的接口，入参是希望Consumer
+      调用的Provider的IP地址，返回值是调用的case情况
+    end note
+  end fork
+endif
+note right
+  调用：Executor调度testcase
+  入参：Set(ConsumersIP), Set(ProvidersIP)
+  解释：第一期默认所有的consumer都能调用到所有到provider，即
+  ∀ IP ∊ Set(ConsumersIP)，都存在∅{IP}到Set(ProvidersIP)的满射调用
+  出参：无，如果case失败，抛出异常
+end note
+:汇总测试信息;
+note right
+  根据汇总所得的信息，判断testcase结果
 end note
 stop
 @enduml
